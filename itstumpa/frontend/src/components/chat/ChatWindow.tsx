@@ -10,7 +10,7 @@ import { updateLastMessage, incrementUnread, clearUnread } from "@/store/slices/
 import api from "@/lib/axios";
 import { getSocket } from "@/lib/socket";
 import type { Message } from "@/types";
-import Link from "next/link";
+
 
 function formatTime(dateStr: string) {
   return new Date(dateStr).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
