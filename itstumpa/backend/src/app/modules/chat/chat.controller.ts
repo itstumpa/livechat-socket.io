@@ -125,10 +125,18 @@ const getUserConversations = catchAsync(
   },
 );
 
+const deleteMessage = catchAsync(async (req: Request, res: Response) => {
+  const result = await ChatService.deleteMessage(req.params.messageId as string, req.user!.id);
+  const io = getIO();
+  io.to(result.messageId).emit("message_deleted", result);
+  sendResponse(res, { statusCode: 200, success: true, message: "Message deleted", data: result });
+});
+
 export const ChatController = {
   getConversation,
   sendMessage,
   getOrCreateConversation,
   deleteConversation,
+  deleteMessage,
   getUserConversations,
 };

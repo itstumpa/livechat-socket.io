@@ -92,16 +92,11 @@ const filtered = conversations.filter((c: Conversation) =>
       <div className="flex items-center gap-2">
   <button
     onClick={() => setShowNewChat(true)}
-    className="text-text-secondary hover:text-primary transition-colors text-xs px-2 py-1 rounded-lg hover:bg-primary/10"
+    className="text-text-secondary hover:text-primary transition-colors text-md px-2 py-2 my-1 rounded-lg hover:bg-primary/10"
   >
-    + New
+    + New Conversation  
   </button>
-  <button
-    onClick={handleLogout}
-    className="text-text-secondary hover:text-red-400 transition-colors text-xs px-2 py-1 rounded-lg hover:bg-red-400/10"
-  >
-    Logout
-  </button>
+
 </div>
 
       {/* Conversations */}
