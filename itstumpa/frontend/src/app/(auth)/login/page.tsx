@@ -19,9 +19,9 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>;
 
 const demoCreds = [
-  { label: "Admin", email: "admin@livechat.demo", password: "Admin@1234" },
-  { label: "User 1", email: "alice@livechat.demo", password: "User@1234" },
-  { label: "User 2", email: "bob@livechat.demo", password: "User@1234" },
+  { label: "Admin", email: "superadmin@livechat.com", password: "Admin@123" },
+  { label: "User 1", email: "alice@example.com", password: "password123" },
+  { label: "User 2", email: "bob@example.com", password: "password123" },
 ];
 
 export default function LoginPage() {
