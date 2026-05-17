@@ -10,6 +10,12 @@ export interface User {
   lastSeen?: string;
 }
 
+export interface ConversationParticipant {
+  id: string;
+  userId: string;
+  user: User;
+}
+
 export interface Message {
   id: string;
   conversationId: string;
@@ -17,27 +23,17 @@ export interface Message {
   content?: string;
   fileUrl?: string;
   fileType?: string | null;
+  fileName?: string | null;
   createdAt: string;
   read: boolean;
+  status?: string;
 }
 
 export interface Conversation {
   id: string;
   unreadCount: number;
   updatedAt: string;
-  otherUser: {
-    id: string;
-    name: string;
-    email: string;
-    isOnline: boolean;
-    lastSeen: string;
-  }; 
-  lastMessage?: {
-    id: string;
-    content?: string;
-    senderId: string;
-    createdAt: string;
-    fileUrl?: string;
-    fileType?: string | null;
-  };
+  otherUser?: User;
+  participants?: ConversationParticipant[];
+  lastMessage?: Message;
 }

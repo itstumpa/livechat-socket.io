@@ -9,6 +9,8 @@ import { setConversations, setConversationsLoading } from "@/store/slices/conver
 import { clearUser } from "@/store/slices/authSlice";
 import { disconnectSocket } from "@/lib/socket";
 import type { Conversation } from "@/types";
+import Swal from "sweetalert2";
+import { deriveOtherUser, normalizeConversation, normalizeConversations } from "./utils";
 
 function formatTime(dateStr: string) {
   const date = new Date(dateStr);
@@ -30,18 +32,47 @@ export default function ConversationSidebar({ onSelect }: { onSelect?: () => voi
   const [search, setSearch] = useState("");
   const [showNewChat, setShowNewChat] = useState(false);
 
-  useEffect(() => {
-    const fetchConversations = async () => {
-      dispatch(setConversationsLoading(true));
-      try {
-        const res = await api.get("/chat/conversations");
-        dispatch(setConversations(res.data.data));
-      } finally {
-        dispatch(setConversationsLoading(false));
+  const fetchConversations = async (
+    merge?: { conv: Conversation; selectedUser: { id: string; name: string; email: string; isOnline?: boolean } }
+  ) => {
+    dispatch(setConversationsLoading(true));
+    try {
+      const res = await api.get("/chat/conversations");
+      const list = res.data.data;
+      const raw = Array.isArray(list) ? list : [];
+      let normalized = normalizeConversations(raw, user?.id);
+      if (merge) {
+        const enriched = normalizeConversation(
+          merge.conv,
+          user?.id,
+          {
+            id: merge.selectedUser.id,
+            name: merge.selectedUser.name,
+            email: merge.selectedUser.email,
+            isOnline: merge.selectedUser.isOnline ?? false,
+          }
+        );
+        const idx = normalized.findIndex((c) => c.id === enriched.id);
+        if (idx === -1) {
+          normalized = [enriched, ...normalized];
+        } else {
+          normalized = normalized.map((c, i) =>
+            i === idx ? { ...c, ...enriched } : c
+          );
+        }
       }
-    };
+      // #region agent log
+      fetch('http://127.0.0.1:7389/ingest/0c556980-4c6c-4da6-a972-1e86ca9966a1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'2ba8aa'},body:JSON.stringify({sessionId:'2ba8aa',location:'ConversationSidebar.tsx:fetchConversations',message:'fetched conversations',data:{count:normalized.length,isArray:Array.isArray(list),activeId,ids:normalized.map((c:Conversation)=>c.id),withOtherUser:normalized.filter((c:Conversation)=>!!c.otherUser).length,searchQuery:search},timestamp:Date.now(),hypothesisId:'A,B,E',runId:'post-fix'})}).catch(()=>{});
+      // #endregion
+      dispatch(setConversations(normalized));
+    } finally {
+      dispatch(setConversationsLoading(false));
+    }
+  };
+
+  useEffect(() => {
     fetchConversations();
-  }, [dispatch]);
+  }, []);
 
   const handleLogout = async () => {
     await api.post("/auth/logout");
@@ -49,119 +80,194 @@ export default function ConversationSidebar({ onSelect }: { onSelect?: () => voi
     dispatch(clearUser());
     router.push("/login");
   };
+const getOtherUser = (conv: Conversation) => deriveOtherUser(conv, user?.id);
 
-const filtered = conversations.filter((c: Conversation) =>
-  c.otherUser?.name?.toLowerCase().includes(search.toLowerCase())
-);
+  const handleDeleteConversation = async (convId: string) => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "This conversation will be permanently deleted.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#06B6D4",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+      background: "#1E2530",
+      color: "#F1F5F9",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await api.delete(`/chat/conversations/${convId}`);
+      dispatch(setConversations(conversations.filter((c: Conversation) => c.id !== convId)));
+      if (activeId === convId) router.push("/dashboard");
+      await Swal.fire({
+        title: "Deleted!",
+        text: "Conversation deleted successfully.",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false,
+        background: "#1E2530",
+        color: "#F1F5F9",
+      });
+    } catch {
+      await Swal.fire({
+        title: "Error",
+        text: "Failed to delete the conversation.",
+        icon: "error",
+        background: "#1E2530",
+        color: "#F1F5F9",
+      });
+    }
+  };
+
+  const filtered = conversations.filter((c: Conversation) => {
+    const otherUser = getOtherUser(c);
+    return otherUser?.name?.toLowerCase().includes(search.toLowerCase()) ?? true;
+  });
+
+  useEffect(() => {
+    // #region agent log
+    fetch('http://127.0.0.1:7389/ingest/0c556980-4c6c-4da6-a972-1e86ca9966a1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'2ba8aa'},body:JSON.stringify({sessionId:'2ba8aa',location:'ConversationSidebar.tsx:renderState',message:'redux vs filtered',data:{reduxCount:conversations.length,filteredCount:filtered.length,activeId,search,ids:conversations.map((c)=>c.id),filteredIds:filtered.map((c)=>c.id)},timestamp:Date.now(),hypothesisId:'B,D'})}).catch(()=>{});
+    // #endregion
+  }, [conversations, filtered.length, activeId, search]);
 
   return (
-    <aside className="flex flex-col h-full bg-secondary border-r border-border">
+    <aside className="flex flex-col h-full bg-[#1E2530] border-r border-[#334155]">
       {/* Header */}
-      <div className="px-4 pt-5 pb-3 border-b border-border">
+      <div className="px-4 pt-5 pb-3 border-b border-[#334155]">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="w-10 h-10 rounded-full bg-linear-to-br from-accent-purple to-primary flex items-center justify-center text-white font-bold text-sm shrink-0">
+              <div className="w-10 h-10 rounded-full bg-linear-to-br from-[#8B5CF6] to-[#06B6D4] flex items-center justify-center text-white font-bold text-sm shrink-0">
                 {user?.name?.[0]?.toUpperCase() ?? "U"}
               </div>
-              <span className="absolute bottom-0 right-0 w-3 h-3 bg-accent-green rounded-full border-2 border-secondary" />
+              <span className="absolute bottom-0 right-0 w-3 h-3 bg-[#10B981] rounded-full border-2 border-[#1E2530]" />
             </div>
             <div className="min-w-0">
-              <p className="text-text-primary font-semibold text-sm truncate">{user?.name}</p>
-              <p className="text-accent-green text-xs">● Online</p>
+              <p className="text-[#F1F5F9] font-semibold text-sm truncate">{user?.name}</p>
+              <p className="text-[#10B981] text-xs">● Online</p>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="text-text-secondary hover:text-red-400 transition-colors text-xs px-2 py-1 rounded-lg hover:bg-red-400/10"
+            className="text-[#94A3B8] hover:text-red-400 transition-colors text-xs px-2 py-1 rounded-lg hover:bg-red-400/10"
           >
             Logout
           </button>
         </div>
 
-        {/* Search */}
         <input
           type="text"
           placeholder="Search conversations..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full bg-base border border-border rounded-xl px-4 py-2.5 text-text-primary text-sm placeholder:text-text-secondary focus:outline-none focus:border-primary transition-colors"
+          className="w-full bg-[#0F1419] border border-[#334155] rounded-xl px-4 py-2.5 text-[#F1F5F9] text-sm placeholder:text-[#94A3B8] focus:outline-none focus:border-[#06B6D4] transition-colors"
         />
       </div>
 
-      <div className="flex items-center gap-2">
-  <button
-    onClick={() => setShowNewChat(true)}
-    className="text-text-secondary hover:text-primary transition-colors text-xs px-2 py-1 rounded-lg hover:bg-primary/10"
-  >
-    + New
-  </button>
-  <button
-    onClick={handleLogout}
-    className="text-text-secondary hover:text-red-400 transition-colors text-xs px-2 py-1 rounded-lg hover:bg-red-400/10"
-  >
-    Logout
-  </button>
-</div>
+      {/* New Conversation */}
+      <div className="px-4 py-2 border-b border-[#334155]">
+        <button
+          onClick={() => setShowNewChat(true)}
+          className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-medium text-[#06B6D4] border border-[#06B6D4]/20 hover:bg-[#06B6D4]/10 transition-colors"
+        >
+          + New Conversation
+        </button>
+      </div>
 
       {/* Conversations */}
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
           <div className="flex items-center justify-center h-32">
-            <div className="w-6 h-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+            <div className="w-6 h-6 rounded-full border-2 border-[#06B6D4] border-t-transparent animate-spin" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-32 gap-2">
-            <p className="text-text-secondary text-sm">No conversations yet</p>
+          <div className="flex items-center justify-center h-32">
+            <p className="text-[#94A3B8] text-sm">No conversations yet</p>
           </div>
         ) : (
-          filtered.map((conv: Conversation) => (
-            <button
-              key={conv.id}
-              onClick={() => {
-                router.push(`/dashboard/chat/${conv.id}`);
-                onSelect?.();
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-3.5 hover:bg-base/50 transition-colors border-b border-border/50 text-left ${
-                activeId === conv.id ? "bg-base/70 border-l-2 border-l-primary" : ""
-              }`}
-            >
-              <div className="relative shrink-0">
-                <div className="w-11 h-11 rounded-full bg-linear-to-br from-accent-purple to-primary flex items-center justify-center text-white font-bold text-sm">
-                  {conv.otherUser?.name[0].toUpperCase()}
-                </div>
-                {conv.otherUser?.isOnline && (
-                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-accent-green rounded-full border-2 border-secondary" />
-                )}
+          filtered.map((conv: Conversation) => {
+            const otherUser = getOtherUser(conv);
+            return (
+              <div key={conv.id} className="relative group border-b border-[#334155]/50">
+                <button
+                  onClick={() => {
+                    // #region agent log
+                    fetch('http://127.0.0.1:7389/ingest/0c556980-4c6c-4da6-a972-1e86ca9966a1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'2ba8aa'},body:JSON.stringify({sessionId:'2ba8aa',location:'ConversationSidebar.tsx:clickConv',message:'sidebar item clicked',data:{clickedId:conv.id,activeId,targetPath:`/dashboard/chat/${conv.id}`},timestamp:Date.now(),hypothesisId:'C,D'})}).catch(()=>{});
+                    // #endregion
+                    router.push(`/dashboard/chat/${conv.id}`);
+                    onSelect?.();
+                  }}
+                  className={`w-full flex items-center gap-3 px-4 py-3.5 hover:bg-[#0F1419]/50 transition-colors text-left ${
+                    activeId === conv.id ? "bg-[#0F1419]/70 border-l-2 border-l-[#06B6D4]" : ""
+                  }`}
+                >
+                  <div className="relative shrink-0">
+                    <div className="w-11 h-11 rounded-full bg-linear-to-br from-[#8B5CF6] to-[#06B6D4] flex items-center justify-center text-white font-bold text-sm">
+                      {otherUser?.name?.[0]?.toUpperCase() ?? "?"}
+                    </div>
+                    {otherUser?.isOnline && (
+                      <span className="absolute bottom-0 right-0 w-3 h-3 bg-[#10B981] rounded-full border-2 border-[#1E2530]" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0 pr-8">
+                    <div className="flex items-center justify-between mb-0.5">
+                      <p className="text-[#F1F5F9] text-sm font-medium truncate">
+                        {otherUser?.name ?? "Unknown"}
+                      </p>
+                      {conv.lastMessage && (
+                        <span className="text-[#94A3B8] text-xs shrink-0 ml-2">
+                          {formatTime(conv.lastMessage.createdAt)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-[#94A3B8] text-xs truncate max-w-[140px]">
+                        {conv.lastMessage?.content ?? (conv.lastMessage?.fileUrl ? "📎 File" : "No messages yet")}
+                      </p>
+                      {conv.unreadCount > 0 && (
+                        <span className="bg-[#06B6D4] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center shrink-0 ml-1">
+                          {conv.unreadCount > 9 ? "9+" : conv.unreadCount}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteConversation(conv.id);
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg text-[#94A3B8] hover:text-red-400 hover:bg-red-400/10"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6l-1 14H6L5 6"/>
+                    <path d="M10 11v6M14 11v6"/>
+                    <path d="M9 6V4h6v2"/>
+                  </svg>
+                </button>
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-0.5">
-                  <p className="text-text-primary text-sm font-medium truncate">{conv.otherUser?.name}</p>
-                  {conv.lastMessage && (
-                    <span className="text-text-secondary text-xs shrink-0 ml-2">
-                      {formatTime(conv.lastMessage.createdAt)}
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-text-secondary text-xs truncate max-w-40">
-{conv.lastMessage?.content ??
-  (conv.lastMessage && "fileUrl" in conv.lastMessage && conv.lastMessage.fileUrl
-    ? "📎 File"
-    : "No messages yet")}
-                  </p>
-                  {conv.unreadCount > 0 && (
-                    <span className="bg-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center shrink-0 ml-1">
-                      {conv.unreadCount > 9 ? "9+" : conv.unreadCount}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </button>
-          ))
+            );
+          })
         )}
       </div>
-      {showNewChat && <NewChatModal onClose={() => setShowNewChat(false)} />}
+
+      {showNewChat && (
+        <NewChatModal
+          onClose={() => setShowNewChat(false)}
+          onCreated={async (createdConv, selectedUser) => {
+            await fetchConversations(
+              createdConv && selectedUser
+                ? { conv: createdConv, selectedUser }
+                : undefined
+            );
+          }}
+        />
+      )}
     </aside>
   );
 }

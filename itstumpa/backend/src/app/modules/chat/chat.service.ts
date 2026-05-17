@@ -106,65 +106,73 @@ const createMessage = async (
   return newMessage;
 };
 
+const participantInclude = {
+  participants: {
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          isOnline: true,
+          lastSeen: true,
+        },
+      },
+    },
+  },
+} as const;
+
 const createConversation = async (participantIds: string[]) => {
   if (participantIds.length !== 2) {
     throw new ApiError(400, "Direct conversation must contain exactly 2 users");
   }
 
-  const conversation = await prisma.conversation.create({
+  return prisma.conversation.create({
     data: {
       type: "DIRECT",
       participants: {
         create: participantIds.map((userId) => ({ userId })),
       },
     },
+    include: participantInclude,
   });
-
-  return conversation;
 };
 
 const getOrCreateConversation = async (participantIds: string[]) => {
-    const validParticipantIds = participantIds.filter(
+  const validParticipantIds = participantIds.filter(
     (id): id is string => Boolean(id)
   );
   if (validParticipantIds.length !== 2) {
     throw new ApiError(400, "Direct conversation requires exactly 2 valid users");
   }
 
-  if (validParticipantIds[0] === validParticipantIds[1]) {
+  const [userIdA, userIdB] = validParticipantIds;
+
+  if (userIdA === userIdB) {
     throw new ApiError(
       400,
       "You cannot create a conversation with yourself"
     );
   }
 
+  // Match only a true 1:1 direct chat between these two users (not partial/single-participant rows)
   const existingConversation = await prisma.conversation.findFirst({
     where: {
       type: "DIRECT",
-      participants: {
-        every: {
-          userId: { in: validParticipantIds },
-        },
-      },
+      AND: [
+        { participants: { some: { userId: userIdA } } },
+        { participants: { some: { userId: userIdB } } },
+      ],
     },
-    include: {
-      participants: {
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              isOnline: true,
-              lastSeen: true,
-            },
-          },
-        },
-      },
-    },
+    include: participantInclude,
   });
 
-  if (existingConversation) return existingConversation;
+  if (
+    existingConversation &&
+    existingConversation.participants.length === 2
+  ) {
+    return existingConversation;
+  }
 
   return createConversation(validParticipantIds);
 };
