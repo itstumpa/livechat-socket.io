@@ -19,9 +19,9 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>;
 
 const demoCreds = [
-  { label: "Admin", email: "superadmin@livechat.com", password: "Admin@123" },
-  { label: "User 1", email: "alice@example.com", password: "password123" },
-  { label: "User 2", email: "bob@example.com", password: "password123" },
+  { label: "Admin", email: "admin@livechat.demo", password: "Admin@1234" },
+  { label: "User 1", email: "alice@livechat.demo", password: "User@1234" },
+  { label: "User 2", email: "bob@livechat.demo", password: "User@1234" },
 ];
 
 export default function LoginPage() {
@@ -43,8 +43,11 @@ export default function LoginPage() {
     try {
       setError(null);
       const res = await api.post("/auth/signin", data);
-      const raw = res.data.data;
-      const user = raw.user ?? raw;
+      console.log("LOGIN RES:", res.data);
+const raw = res.data.data;
+const user = raw.user ?? raw;
+console.log("USER ROLE:", user.role);
+console.log("REDIRECTING TO:", user.role === "USER" ? "/dashboard" : "/admin");
       dispatch(setUser(user));
       connectSocket();
       if (user.role === "USER") {
@@ -53,8 +56,7 @@ export default function LoginPage() {
         router.push("/admin");
       }
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Invalid credentials";
+      const message = err instanceof Error ? err.message : "Invalid credentials";
       setError(message);
     }
   };
@@ -80,9 +82,7 @@ export default function LoginPage() {
               LiveChat
             </span>
           </Link>
-          <h1 className="text-2xl font-bold text-[#F1F5F9] mt-6 mb-1">
-            Welcome back
-          </h1>
+          <h1 className="text-2xl font-bold text-[#F1F5F9] mt-6 mb-1">Welcome back</h1>
           <p className="text-[#94A3B8] text-sm">Sign in to your account</p>
         </div>
 
@@ -93,36 +93,22 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="flex flex-col gap-5"
-          >
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
             <div>
-              <label className="text-sm font-medium text-[#F1F5F9] block mb-1.5">
-                Email
-              </label>
+              <label className="text-sm font-medium text-[#F1F5F9] block mb-1.5">Email</label>
               <input
                 {...register("email")}
                 type="email"
                 placeholder="you@example.com"
                 className="w-full bg-[#0F1419] border border-[#334155] rounded-xl px-4 py-3 text-[#F1F5F9] text-sm placeholder:text-[#94A3B8] focus:outline-none focus:border-[#06B6D4] transition-colors"
               />
-              {errors.email && (
-                <p className="text-red-400 text-xs mt-1">
-                  {errors.email.message}
-                </p>
-              )}
+              {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>}
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-sm font-medium text-[#F1F5F9]">
-                  Password
-                </label>
-                <Link
-                  href="/forgot-password"
-                  className="text-xs text-[#06B6D4] hover:text-[#22D3EE] transition-colors"
-                >
+                <label className="text-sm font-medium text-[#F1F5F9]">Password</label>
+                <Link href="/forgot-password" className="text-xs text-[#06B6D4] hover:text-[#22D3EE] transition-colors">
                   Forgot password?
                 </Link>
               </div>
@@ -142,44 +128,20 @@ export default function LoginPage() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#F1F5F9] transition-colors"
                 >
                   {showPassword ? (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-                      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-                      <line x1="1" y1="1" x2="23" y2="23" />
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                      <line x1="1" y1="1" x2="23" y2="23"/>
                     </svg>
                   ) : (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                      <circle cx="12" cy="12" r="3" />
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
                     </svg>
                   )}
                 </button>
               </div>
-              {errors.password && (
-                <p className="text-red-400 text-xs mt-1">
-                  {errors.password.message}
-                </p>
-              )}
+              {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password.message}</p>}
             </div>
 
             <button
@@ -205,13 +167,11 @@ export default function LoginPage() {
                   className="flex items-center justify-between px-3 py-2 rounded-lg bg-[#0F1419] border border-[#334155] hover:border-[#06B6D4]/40 transition-colors group"
                 >
                   <div className="flex items-center gap-2">
-                    <span
-                      className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                        cred.label === "Admin"
-                          ? "bg-[#8B5CF6]/20 text-[#8B5CF6]"
-                          : "bg-[#06B6D4]/20 text-[#06B6D4]"
-                      }`}
-                    >
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                      cred.label === "Admin"
+                        ? "bg-[#8B5CF6]/20 text-[#8B5CF6]"
+                        : "bg-[#06B6D4]/20 text-[#06B6D4]"
+                    }`}>
                       {cred.label}
                     </span>
                     <span className="text-[#94A3B8] text-xs">{cred.email}</span>
@@ -226,10 +186,7 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-[#94A3B8] mt-6">
             Don&apos;t have an account?{" "}
-            <Link
-              href="/signup"
-              className="text-[#06B6D4] hover:text-[#22D3EE] font-medium transition-colors"
-            >
+            <Link href="/signup" className="text-[#06B6D4] hover:text-[#22D3EE] font-medium transition-colors">
               Sign up
             </Link>
           </p>
