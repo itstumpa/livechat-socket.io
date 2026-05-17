@@ -85,10 +85,6 @@ const getOrCreateConversation = catchAsync(
       otherUserId,
     ]);
 
-    // #region agent log
-    fetch('http://127.0.0.1:7389/ingest/0c556980-4c6c-4da6-a972-1e86ca9966a1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'2ba8aa'},body:JSON.stringify({sessionId:'2ba8aa',location:'chat.controller.ts:getOrCreateConversation',message:'conversation resolved',data:{otherUserId,convId:conversation.id,participantIds:conversation.participants?.map((p)=>p.userId),participantCount:conversation.participants?.length},timestamp:Date.now(),hypothesisId:'F',runId:'post-fix-v2'})}).catch(()=>{});
-    // #endregion
-
     sendResponse(res, {
       statusCode: 200,
       success: true,

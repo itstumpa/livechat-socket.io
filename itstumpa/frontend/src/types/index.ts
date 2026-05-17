@@ -33,25 +33,7 @@ export interface Conversation {
   id: string;
   unreadCount: number;
   updatedAt: string;
-<<<<<<< HEAD
   otherUser?: User;
   participants?: ConversationParticipant[];
   lastMessage?: Message;
-=======
-  otherUser: {
-    id: string;
-    name: string;
-    email: string;
-    isOnline: boolean;
-    lastSeen: string;
-  }; 
-  lastMessage?: {
-    id: string;
-    content?: string;
-    senderId: string;
-    createdAt: string;
-    fileUrl?: string;
-    fileType?: string | null;
-  };
->>>>>>> 356af953df29c9461799e75bcf7c57a5f4a7368e
 }

@@ -1,26 +1,4 @@
-import Link from "next/link";
-
-const values = [
-  {
-    title: "Speed First",
-    description: "Every millisecond counts. Optimized relentlessly to deliver the fastest messaging experience.",
-  },
-  {
-    title: "Privacy Matters",
-    description: "Your data is yours. End-to-end encryption and zero data mining, guaranteed.",
-  },
-  {
-    title: "Simple by Design",
-    description: "Powerful features shouldn't be complicated. Intuitive interfaces, zero learning curve.",
-  },
-];
-
-const milestones = [
-  { year: "2023", event: "Started learning full-stack development" },
-  { year: "2024", event: "Built first real-time messaging prototype" },
-  { year: "2025", event: "Launched LiveChat beta version" },
-  { year: "2026", event: "Reached 10K+ active users" },
-];
+import Link from "next/link"
 
 const skills = [
   "Next.js & React",

@@ -44,9 +44,6 @@ export default function ChatWindow({ conversationId }: { conversationId: string 
       const res = await api.get(`/chat/conversations/${conversationId}`);
       if (seq !== loadSeqRef.current) return;
       const data = res.data.data;
-      // #region agent log
-      fetch('http://127.0.0.1:7389/ingest/0c556980-4c6c-4da6-a972-1e86ca9966a1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'2ba8aa'},body:JSON.stringify({sessionId:'2ba8aa',location:'ChatWindow.tsx:fetchMessages',message:'messages loaded',data:{conversationId,messageCount:(data.messages??[]).length,responseConvId:data.id,seq},timestamp:Date.now(),hypothesisId:'C,H',runId:'post-fix-v3'})}).catch(()=>{});
-      // #endregion
       dispatch(setMessages(data.messages ?? []));
       dispatch(setHasMore(!!data.nextCursor));
       dispatch(setCursor(data.nextCursor ?? null));
@@ -59,9 +56,6 @@ export default function ChatWindow({ conversationId }: { conversationId: string 
   }, [conversationId, dispatch]);
 
   useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7389/ingest/0c556980-4c6c-4da6-a972-1e86ca9966a1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'2ba8aa'},body:JSON.stringify({sessionId:'2ba8aa',location:'ChatWindow.tsx:useEffect',message:'conversationId changed',data:{conversationId,reduxConvCount:conversations.length,foundInRedux:!!conversation,otherUserName:otherUser?.name??null},timestamp:Date.now(),hypothesisId:'C',runId:'post-fix-v3'})}).catch(()=>{});
-    // #endregion
     loadMessages();
   }, [loadMessages]);
 
@@ -76,11 +70,7 @@ export default function ChatWindow({ conversationId }: { conversationId: string 
     return () => window.removeEventListener("chat:refresh", onRefresh);
   }, [conversationId, loadMessages]);
 
-  useEffect(() => {
-    setText("");
-    setFile(null);
-    setIsTyping(false);
-  }, [conversationId]);
+
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -192,7 +182,7 @@ export default function ChatWindow({ conversationId }: { conversationId: string 
 
 
   return (
-    <div className="flex flex-col h-full bg-[#0F1419]">
+    <div key={conversationId} className="flex flex-col h-full bg-[#0F1419]">
       {/* Lightbox */}
       {lightboxUrl && (
         <div

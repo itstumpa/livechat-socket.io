@@ -96,18 +96,11 @@ export default function NewChatModal({ onClose, onCreated }: NewChatModalProps) 
       const res = await api.post("/chat/conversations", { otherUserId: userId });
       const conv = res.data.data as Conversation;
       const convId = conv?.id;
-      // #region agent log
-      fetch('http://127.0.0.1:7389/ingest/0c556980-4c6c-4da6-a972-1e86ca9966a1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'2ba8aa'},body:JSON.stringify({sessionId:'2ba8aa',location:'NewChatModal.tsx:handleStart',message:'conversation created',data:{otherUserId:userId,convId,hasOtherUser:!!conv?.otherUser,participantCount:conv?.participants?.length,participantUserIds:conv?.participants?.map((p)=>p.userId),keys:conv?Object.keys(conv):[]},timestamp:Date.now(),hypothesisId:'A,D',runId:'post-fix-v2'})}).catch(()=>{});
-      // #endregion
       if (!convId) return;
 
       const validPair =
         !!currentUser?.id &&
         conversationHasParticipants(conv, currentUser.id, userId);
-
-      // #region agent log
-      fetch('http://127.0.0.1:7389/ingest/0c556980-4c6c-4da6-a972-1e86ca9966a1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'2ba8aa'},body:JSON.stringify({sessionId:'2ba8aa',location:'NewChatModal.tsx:handleStart',message:'pair validation',data:{validPair,convId,otherUserId:userId,currentUserId:currentUser?.id,participantUserIds:conv?.participants?.map((p)=>p.userId)},timestamp:Date.now(),hypothesisId:'G',runId:'post-fix-v3'})}).catch(()=>{});
-      // #endregion
 
       if (!validPair) {
         await Swal.fire({
@@ -125,9 +118,6 @@ export default function NewChatModal({ onClose, onCreated }: NewChatModalProps) 
       const targetPath = `/dashboard/chat/${convId}`;
       const sameRoute =
         typeof window !== "undefined" && window.location.pathname === targetPath;
-      // #region agent log
-      fetch('http://127.0.0.1:7389/ingest/0c556980-4c6c-4da6-a972-1e86ca9966a1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'2ba8aa'},body:JSON.stringify({sessionId:'2ba8aa',location:'NewChatModal.tsx:handleStart',message:'navigating to chat',data:{convId,targetPath,sameRoute},timestamp:Date.now(),hypothesisId:'C,D',runId:'post-fix'})}).catch(()=>{});
-      // #endregion
       router.push(targetPath);
       if (sameRoute) {
         window.dispatchEvent(
