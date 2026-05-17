@@ -296,11 +296,19 @@ const getOtherUser = (conv: Conversation) => deriveOtherUser(conv, user?.id);
         <NewChatModal
           onClose={() => setShowNewChat(false)}
           onCreated={async (createdConv, selectedUser) => {
-            await fetchConversations(
-              createdConv && selectedUser
-                ? { conv: createdConv, selectedUser }
-                : undefined
-            );
+            const validPair =
+              !!user?.id &&
+              !!createdConv &&
+              !!selectedUser &&
+              conversationHasParticipants(
+                createdConv,
+                user.id,
+                selectedUser.id
+              );
+            // #region agent log
+            fetch('http://127.0.0.1:7389/ingest/0c556980-4c6c-4da6-a972-1e86ca9966a1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'2ba8aa'},body:JSON.stringify({sessionId:'2ba8aa',location:'ConversationSidebar.tsx:onCreated',message:'create validation',data:{validPair,convId:createdConv?.id,selectedUserId:selectedUser?.id,participantIds:createdConv?.participants?.map((p)=>p.userId)},timestamp:Date.now(),hypothesisId:'G',runId:'post-fix-v3'})}).catch(()=>{});
+            // #endregion
+            await fetchConversations();
           }}
         />
       )}

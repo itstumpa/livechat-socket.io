@@ -3,7 +3,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
+import { useAppSelector } from "@/hooks/redux";
 import type { Conversation } from "@/types";
+import { conversationHasParticipants } from "./utils";
+import Swal from "sweetalert2";
 /* eslint-disable react-hooks/set-state-in-effect */
 
 interface SearchUser {
@@ -13,7 +16,6 @@ interface SearchUser {
   isOnline: boolean;
 }
 
-<<<<<<< HEAD
 interface NewChatModalProps {
   onClose: () => void;
   onCreated?: (
@@ -23,10 +25,8 @@ interface NewChatModalProps {
 }
 
 export default function NewChatModal({ onClose, onCreated }: NewChatModalProps) {
-=======
-export default function NewChatModal({ onClose }: { onClose: () => void }) {
->>>>>>> 356af953df29c9461799e75bcf7c57a5f4a7368e
   const router = useRouter();
+  const { user: currentUser } = useAppSelector((s) => s.auth);
   const [tab, setTab] = useState<"all" | "search">("all");
   const [query, setQuery] = useState("");
   const [searchUsers, setSearchUsers] = useState<SearchUser[]>([]);
@@ -38,10 +38,6 @@ export default function NewChatModal({ onClose }: { onClose: () => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const limit = 10;
 
-<<<<<<< HEAD
-=======
-  // fetch all users with pagination
->>>>>>> 356af953df29c9461799e75bcf7c57a5f4a7368e
   const fetchAllUsers = useCallback(async (pageNum: number, reset = false) => {
     setIsLoading(true);
     try {
@@ -60,10 +56,6 @@ export default function NewChatModal({ onClose }: { onClose: () => void }) {
     }
   }, []);
 
-<<<<<<< HEAD
-=======
-  // fetch search users — param is `q`
->>>>>>> 356af953df29c9461799e75bcf7c57a5f4a7368e
   const fetchSearch = useCallback(async (q: string) => {
     if (!q.trim()) { setSearchUsers([]); return; }
     setIsLoading(true);
@@ -108,6 +100,26 @@ export default function NewChatModal({ onClose }: { onClose: () => void }) {
       fetch('http://127.0.0.1:7389/ingest/0c556980-4c6c-4da6-a972-1e86ca9966a1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'2ba8aa'},body:JSON.stringify({sessionId:'2ba8aa',location:'NewChatModal.tsx:handleStart',message:'conversation created',data:{otherUserId:userId,convId,hasOtherUser:!!conv?.otherUser,participantCount:conv?.participants?.length,participantUserIds:conv?.participants?.map((p)=>p.userId),keys:conv?Object.keys(conv):[]},timestamp:Date.now(),hypothesisId:'A,D',runId:'post-fix-v2'})}).catch(()=>{});
       // #endregion
       if (!convId) return;
+
+      const validPair =
+        !!currentUser?.id &&
+        conversationHasParticipants(conv, currentUser.id, userId);
+
+      // #region agent log
+      fetch('http://127.0.0.1:7389/ingest/0c556980-4c6c-4da6-a972-1e86ca9966a1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'2ba8aa'},body:JSON.stringify({sessionId:'2ba8aa',location:'NewChatModal.tsx:handleStart',message:'pair validation',data:{validPair,convId,otherUserId:userId,currentUserId:currentUser?.id,participantUserIds:conv?.participants?.map((p)=>p.userId)},timestamp:Date.now(),hypothesisId:'G',runId:'post-fix-v3'})}).catch(()=>{});
+      // #endregion
+
+      if (!validPair) {
+        await Swal.fire({
+          title: "Could not open chat",
+          text: "The server returned the wrong conversation. Restart the backend server and try again.",
+          icon: "error",
+          background: "#1E2530",
+          color: "#F1F5F9",
+        });
+        return;
+      }
+
       onClose();
       await onCreated?.(conv, selectedUser);
       const targetPath = `/dashboard/chat/${convId}`;
@@ -188,11 +200,6 @@ export default function NewChatModal({ onClose }: { onClose: () => void }) {
           </button>
         </div>
 
-<<<<<<< HEAD
-        {/* Search input */}
-=======
-        {/* Search input — only on search tab */}
->>>>>>> 356af953df29c9461799e75bcf7c57a5f4a7368e
         {tab === "search" && (
           <div className="px-5 py-3 border-b border-[#334155]">
             <input
@@ -228,10 +235,6 @@ export default function NewChatModal({ onClose }: { onClose: () => void }) {
 
           {displayUsers.map((u) => <UserRow key={u.id} u={u} />)}
 
-<<<<<<< HEAD
-=======
-          {/* Load more — all tab only */}
->>>>>>> 356af953df29c9461799e75bcf7c57a5f4a7368e
           {tab === "all" && hasMore && (
             <div className="px-5 py-3 flex justify-center">
               <button

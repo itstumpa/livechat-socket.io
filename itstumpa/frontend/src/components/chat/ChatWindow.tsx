@@ -34,34 +34,33 @@ export default function ChatWindow({ conversationId }: { conversationId: string 
   const topRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const typingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-<<<<<<< HEAD
+  const loadSeqRef = useRef(0);
 
   const loadMessages = useCallback(async () => {
-=======
-  useEffect(() => {
->>>>>>> 356af953df29c9461799e75bcf7c57a5f4a7368e
+    const seq = ++loadSeqRef.current;
     dispatch(clearMessages());
     dispatch(setMessagesLoading(true));
     try {
       const res = await api.get(`/chat/conversations/${conversationId}`);
+      if (seq !== loadSeqRef.current) return;
       const data = res.data.data;
       // #region agent log
-      fetch('http://127.0.0.1:7389/ingest/0c556980-4c6c-4da6-a972-1e86ca9966a1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'2ba8aa'},body:JSON.stringify({sessionId:'2ba8aa',location:'ChatWindow.tsx:fetchMessages',message:'messages loaded',data:{conversationId,messageCount:(data.messages??[]).length,responseConvId:data.id},timestamp:Date.now(),hypothesisId:'C',runId:'post-fix'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7389/ingest/0c556980-4c6c-4da6-a972-1e86ca9966a1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'2ba8aa'},body:JSON.stringify({sessionId:'2ba8aa',location:'ChatWindow.tsx:fetchMessages',message:'messages loaded',data:{conversationId,messageCount:(data.messages??[]).length,responseConvId:data.id,seq},timestamp:Date.now(),hypothesisId:'C,H',runId:'post-fix-v3'})}).catch(()=>{});
       // #endregion
       dispatch(setMessages(data.messages ?? []));
       dispatch(setHasMore(!!data.nextCursor));
       dispatch(setCursor(data.nextCursor ?? null));
       dispatch(clearUnread(conversationId));
     } finally {
-      dispatch(setMessagesLoading(false));
+      if (seq === loadSeqRef.current) {
+        dispatch(setMessagesLoading(false));
+      }
     }
   }, [conversationId, dispatch]);
 
-<<<<<<< HEAD
   useEffect(() => {
     // #region agent log
-    fetch('http://127.0.0.1:7389/ingest/0c556980-4c6c-4da6-a972-1e86ca9966a1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'2ba8aa'},body:JSON.stringify({sessionId:'2ba8aa',location:'ChatWindow.tsx:useEffect',message:'conversationId changed',data:{conversationId,reduxConvCount:conversations.length,foundInRedux:!!conversation,otherUserName:otherUser?.name??null},timestamp:Date.now(),hypothesisId:'C',runId:'post-fix'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7389/ingest/0c556980-4c6c-4da6-a972-1e86ca9966a1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'2ba8aa'},body:JSON.stringify({sessionId:'2ba8aa',location:'ChatWindow.tsx:useEffect',message:'conversationId changed',data:{conversationId,reduxConvCount:conversations.length,foundInRedux:!!conversation,otherUserName:otherUser?.name??null},timestamp:Date.now(),hypothesisId:'C',runId:'post-fix-v3'})}).catch(()=>{});
     // #endregion
     loadMessages();
   }, [loadMessages]);
@@ -77,8 +76,12 @@ export default function ChatWindow({ conversationId }: { conversationId: string 
     return () => window.removeEventListener("chat:refresh", onRefresh);
   }, [conversationId, loadMessages]);
 
-=======
->>>>>>> 356af953df29c9461799e75bcf7c57a5f4a7368e
+  useEffect(() => {
+    setText("");
+    setFile(null);
+    setIsTyping(false);
+  }, [conversationId]);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
