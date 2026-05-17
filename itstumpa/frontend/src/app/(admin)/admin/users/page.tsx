@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, } from "react";
 import api from "@/lib/axios";
 import UserDetailModal from "@/components/admin/UserDetailModal";
+import Swal from 'sweetalert2';
 
 interface AdminUser {
   id: string;
@@ -24,6 +25,34 @@ export default function AdminUsersPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+
+
+const handleDelete = async (userId: string, userName: string) => {
+  const result = await Swal.fire({
+    title: `Delete ${userName}?`,
+    text: "This cannot be undone",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: 'Delete'
+  });
+
+  if (!result.isConfirmed) return;
+  
+  setActionLoading(userId);
+ try {
+  await api.delete(`/users/${userId}`);
+  setUsers((prev) => prev.filter((u) => u.id !== userId));
+  setTotal((prev) => prev - 1);
+  
+  Swal.fire('Deleted!', `${userName} has been deleted`, 'success');
+} catch (error: unknown) {
+  const err = error as { response?: { data?: { message?: string } } };
+  console.error('Delete error:', err.response?.data || error);
+  Swal.fire('Error', err.response?.data?.message || 'Failed to delete user', 'error');
+}
+}
 
   // debounce search
   useEffect(() => {
@@ -59,6 +88,8 @@ const totalCount = result.meta?.total ?? 0;
     };
 
     fetchUsers();
+
+ 
 
     return () => {
       isMounted = false;
@@ -116,7 +147,7 @@ const totalCount = result.meta?.total ?? 0;
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-[#334155]">
-                    {["User", "Email", "Role", "Status", "Joined", "Action"].map((h) => (
+                    {["User", "Email", "Role", "Status", "Joined", "Actions", ].map((h) => (
                       <th key={h} className="text-left px-5 py-4 text-[#94A3B8] font-medium text-xs uppercase tracking-wide">
                         {h}
                       </th>
@@ -170,20 +201,30 @@ const totalCount = result.meta?.total ?? 0;
                           {new Date(u.createdAt).toLocaleDateString()}
                         </td>
                         <td className="px-5 py-4">
-                          {u.role !== "SUPER_ADMIN" && (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleSuspend(u.id, u.isSuspended); }}
-                              disabled={actionLoading === u.id}
-                              className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors disabled:opacity-50 ${
-                                u.isSuspended
-                                  ? "bg-[#10B981]/10 text-[#10B981] hover:bg-[#10B981]/20"
-                                  : "bg-red-500/10 text-red-400 hover:bg-red-500/20"
-                              }`}
-                            >
-                              {actionLoading === u.id ? "..." : u.isSuspended ? "Unsuspend" : "Suspend"}
-                            </button>
-                          )}
-                        </td>
+  {u.role !== "SUPER_ADMIN" && (
+    <div className="flex items-center gap-2">
+      <button
+        onClick={(e) => { e.stopPropagation(); handleSuspend(u.id, u.isSuspended); }}
+        disabled={actionLoading === u.id}
+        className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors disabled:opacity-50 ${
+          u.isSuspended
+            ? "bg-[#10B981]/10 text-[#10B981] hover:bg-[#10B981]/20"
+            : "bg-red-500/10 text-red-400 hover:bg-red-500/20"
+        }`}
+      >
+        {actionLoading === u.id ? "..." : u.isSuspended ? "Unsuspend" : "Suspend"}
+      </button>
+      <button
+        onClick={(e) => { e.stopPropagation(); handleDelete(u.id, u.name); }}
+        disabled={actionLoading === u.id}
+        className="text-xs px-3 py-1.5 rounded-lg font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-50"
+      >
+        Delete
+      </button>
+    </div>
+  )}
+</td>
+                        
                       </tr>
                     ))
                   )}

@@ -21,6 +21,7 @@ export const getAllUsers = catchAsync(async (req: Request, res: Response) => {
   console.log('Controller received:', { page, limit, q });
   const result = await UserService.getAllUsers({ page, limit, q });
   
+  res.setHeader('Cache-Control', 'no-cache');
   sendResponse(res, {
     statusCode: 200,
     success: true,
