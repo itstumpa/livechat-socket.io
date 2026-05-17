@@ -17,8 +17,9 @@ export const createUser = catchAsync(async (req: Request, res: Response) => {
 export const getAllUsers = catchAsync(async (req: Request, res: Response) => {
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 10;
-  
-  const result = await UserService.getAllUsers({ page, limit });
+  const q = req.query.q as string | undefined;
+  console.log('Controller received:', { page, limit, q });
+  const result = await UserService.getAllUsers({ page, limit, q });
   
   sendResponse(res, {
     statusCode: 200,

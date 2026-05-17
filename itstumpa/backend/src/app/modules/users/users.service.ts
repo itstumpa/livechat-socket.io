@@ -1,21 +1,16 @@
-import bcrypt from "bcrypt";
-import { prisma } from "../../../lib/prisma";
-import { Role } from "@prisma/client";
-import ApiError from "../../../utils/apiErrors";
+import bcrypt from 'bcrypt';
+import { prisma } from '../../../lib/prisma';
+import { Role } from '@prisma/client';
+import ApiError from '../../../utils/apiErrors';
 
 // CREATE
-export const createUser = async (data: {
-  name: string;
-  email: string;
-  password: string;
-  role?: Role;
-}) => {
+export const createUser = async (data: { name: string; email: string; password: string; role?: Role }) => {
   const existing = await prisma.user.findUnique({
     where: { email: data.email },
   });
 
   if (existing) {
-    throw new ApiError(409, "Email already in use");
+    throw new ApiError(409, 'Email already in use');
   }
 
   const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -44,13 +39,13 @@ export const searchUsers = async (query: string) => {
         {
           name: {
             contains: query,
-            mode: "insensitive",
+            mode: 'insensitive',
           },
         },
         {
           email: {
             contains: query,
-            mode: "insensitive",
+            mode: 'insensitive',
           },
         },
       ],
@@ -79,31 +74,38 @@ export const getUserById = async (id: string) => {
     },
   });
 
-  if (!user) throw new ApiError(404, "User not found");
+  if (!user) throw new ApiError(404, 'User not found');
   return user;
 };
 
 // ADMIN — get all users
-export const getAllUsers = async (params: { page?: number; limit?: number }) => {
+export const getAllUsers = async (params: { page?: number; limit?: number; q?: string }) => {
   const page = params.page || 1;
   const limit = params.limit || 10;
   const skip = (page - 1) * limit;
 
+  const where = params.q
+    ? {
+        OR: [{ name: { contains: params.q, mode: 'insensitive' as const } }, { email: { contains: params.q, mode: 'insensitive' as const } }],
+      }
+    : undefined;
+
   const [users, total] = await Promise.all([
     prisma.user.findMany({
+      where,
       select: {
         id: true,
         name: true,
         email: true,
         role: true,
-        isEmailVerified: true,
+        isSuspended: true, // <-- you're missing this in your select
         createdAt: true,
       },
       orderBy: { createdAt: 'desc' },
       take: limit,
       skip,
     }),
-    prisma.user.count(),
+    prisma.user.count({ where }),
   ]);
 
   return {
@@ -118,12 +120,9 @@ export const getAllUsers = async (params: { page?: number; limit?: number }) => 
 };
 
 // UPDATE
-export const updateUser = async (
-  id: string,
-  data: { name?: string; email?: string }
-) => {
+export const updateUser = async (id: string, data: { name?: string; email?: string }) => {
   const user = await prisma.user.findUnique({ where: { id } });
-  if (!user) throw new ApiError(404, "User not found");
+  if (!user) throw new ApiError(404, 'User not found');
 
   if (data.email) {
     const emailExists = await prisma.user.findFirst({
@@ -134,7 +133,7 @@ export const updateUser = async (
     });
 
     if (emailExists) {
-      throw new ApiError(409, "Email already in use");
+      throw new ApiError(409, 'Email already in use');
     }
   }
 
@@ -154,8 +153,8 @@ export const updateUser = async (
 export const deleteUser = async (id: string) => {
   try {
     await prisma.user.delete({ where: { id } });
-    return { message: "User deleted successfully" };
+    return { message: 'User deleted successfully' };
   } catch (error) {
-    throw new ApiError(404, "User not found");
+    throw new ApiError(404, 'User not found');
   }
 };
