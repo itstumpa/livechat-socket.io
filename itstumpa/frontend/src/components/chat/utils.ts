@@ -44,3 +44,15 @@ export function normalizeConversations(
 ): Conversation[] {
   return list.map((c) => normalizeConversation(c, currentUserId));
 }
+
+/** True only for a proper 1:1 chat between exactly these two users. */
+export function conversationHasParticipants(
+  conv: Conversation,
+  userIdA: string,
+  userIdB: string
+): boolean {
+  const ids = conv.participants?.map((p) => p.userId) ?? [];
+  return (
+    ids.length === 2 && ids.includes(userIdA) && ids.includes(userIdB)
+  );
+}

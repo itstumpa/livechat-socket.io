@@ -13,6 +13,7 @@ interface SearchUser {
   isOnline: boolean;
 }
 
+<<<<<<< HEAD
 interface NewChatModalProps {
   onClose: () => void;
   onCreated?: (
@@ -22,6 +23,9 @@ interface NewChatModalProps {
 }
 
 export default function NewChatModal({ onClose, onCreated }: NewChatModalProps) {
+=======
+export default function NewChatModal({ onClose }: { onClose: () => void }) {
+>>>>>>> 356af953df29c9461799e75bcf7c57a5f4a7368e
   const router = useRouter();
   const [tab, setTab] = useState<"all" | "search">("all");
   const [query, setQuery] = useState("");
@@ -34,6 +38,10 @@ export default function NewChatModal({ onClose, onCreated }: NewChatModalProps) 
   const inputRef = useRef<HTMLInputElement>(null);
   const limit = 10;
 
+<<<<<<< HEAD
+=======
+  // fetch all users with pagination
+>>>>>>> 356af953df29c9461799e75bcf7c57a5f4a7368e
   const fetchAllUsers = useCallback(async (pageNum: number, reset = false) => {
     setIsLoading(true);
     try {
@@ -52,6 +60,10 @@ export default function NewChatModal({ onClose, onCreated }: NewChatModalProps) 
     }
   }, []);
 
+<<<<<<< HEAD
+=======
+  // fetch search users — param is `q`
+>>>>>>> 356af953df29c9461799e75bcf7c57a5f4a7368e
   const fetchSearch = useCallback(async (q: string) => {
     if (!q.trim()) { setSearchUsers([]); return; }
     setIsLoading(true);
@@ -176,7 +188,11 @@ export default function NewChatModal({ onClose, onCreated }: NewChatModalProps) 
           </button>
         </div>
 
+<<<<<<< HEAD
         {/* Search input */}
+=======
+        {/* Search input — only on search tab */}
+>>>>>>> 356af953df29c9461799e75bcf7c57a5f4a7368e
         {tab === "search" && (
           <div className="px-5 py-3 border-b border-[#334155]">
             <input
@@ -212,6 +228,10 @@ export default function NewChatModal({ onClose, onCreated }: NewChatModalProps) 
 
           {displayUsers.map((u) => <UserRow key={u.id} u={u} />)}
 
+<<<<<<< HEAD
+=======
+          {/* Load more — all tab only */}
+>>>>>>> 356af953df29c9461799e75bcf7c57a5f4a7368e
           {tab === "all" && hasMore && (
             <div className="px-5 py-3 flex justify-center">
               <button
