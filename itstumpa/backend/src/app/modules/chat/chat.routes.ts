@@ -22,7 +22,10 @@ router.get('/conversations/:id', validateRequest(ChatValidation.getConversation)
 // Send message
 router.post('/messages', uploadFile.single("file"), validateRequest(ChatValidation.sendMessage), ChatController.sendMessage);
 
-// Delete conversation
+// Delete full conversation
 router.delete('/conversations/:conversationId', validateRequest(ChatValidation.deleteConversation), ChatController.deleteConversation);
+
+// Delete individual message
+router.delete('/messages/:messageId', validateRequest(ChatValidation.deleteMessage), ChatController.deleteMessage);
 
 export const ChatRoutes = router;

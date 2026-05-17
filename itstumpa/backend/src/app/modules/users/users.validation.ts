@@ -32,5 +32,6 @@ export const paginationSchema = z.object({
   query: z.object({
     page: z.coerce.number().int().positive().optional(),
     limit: z.coerce.number().int().positive().max(100).optional(),
+    q: z.string().optional(),
   }),
 });

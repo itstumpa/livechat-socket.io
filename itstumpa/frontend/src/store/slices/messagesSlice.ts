@@ -42,6 +42,9 @@ const messagesSlice = createSlice({
       state.hasMore = true;
       state.cursor = null;
     },
+    removeMessage: (state, action: PayloadAction<string>) => {
+  state.messages = state.messages.filter((m) => m.id !== action.payload);
+},
   },
 });
 
@@ -51,6 +54,7 @@ export const {
   appendMessage,
   setMessagesLoading,
   setHasMore,
+  removeMessage,
   setCursor,
   clearMessages,
 } = messagesSlice.actions;

@@ -23,6 +23,8 @@ export interface Message {
 
 export interface Conversation {
   id: string;
+  unreadCount: number;
+  updatedAt: string;
   otherUser: {
     id: string;
     name: string;
@@ -30,8 +32,6 @@ export interface Conversation {
     isOnline: boolean;
     lastSeen: string;
   }; 
-  unreadCount: number;
-  updatedAt: string;
   lastMessage?: {
     id: string;
     content?: string;

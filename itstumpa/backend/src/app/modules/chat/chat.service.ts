@@ -240,7 +240,13 @@ const getUserConversations = async (userId: string) => {
     lastMessage: conv.messages[0] || null,
   }));
 };
-
+export const deleteMessage = async (messageId: string, userId: string) => {
+  const message = await prisma.message.findUnique({ where: { id: messageId } });
+  if (!message) throw new ApiError(404, "Message not found");
+  if (message.senderId !== userId) throw new ApiError(403, "You can only delete your own messages");
+  await prisma.message.delete({ where: { id: messageId } });
+  return { messageId };
+};
 
 
 export const ChatService = {
@@ -250,4 +256,5 @@ export const ChatService = {
   getOrCreateConversation,
   deleteConversation,
   getUserConversations,
+  deleteMessage,
 };

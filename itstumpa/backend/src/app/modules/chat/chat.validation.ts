@@ -48,9 +48,16 @@ const deleteConversation = z.object({
   }),
 });
 
+const deleteMessage = z.object({
+  params: z.object({
+    messageId: z.string().cuid(),
+  }),
+});
+
 export const ChatValidation = {
   sendMessage,
   getOrCreateConversation,
   getConversation,
   deleteConversation,
+  deleteMessage,
 };
