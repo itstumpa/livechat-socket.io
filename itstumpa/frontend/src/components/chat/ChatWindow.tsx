@@ -217,11 +217,7 @@ export default function ChatWindow({ conversationId }: { conversationId: string 
       <div className="flex items-center gap-3 px-4 py-4 border-b border-[#334155] bg-[#1E2530] shrink-0">
         <div className="relative shrink-0">
           <div className="w-10 h-10 rounded-full bg-linear-to-br from-[#8B5CF6] to-[#06B6D4] flex items-center justify-center text-white font-bold text-sm">
-<<<<<<< HEAD
             {otherUser?.name?.[0]?.toUpperCase() ?? "?"}
-=======
-            {conversation?.otherUser?.name?.[0]?.toUpperCase() ?? "?"}
->>>>>>> 356af953df29c9461799e75bcf7c57a5f4a7368e
           </div>
           {otherUser?.isOnline && (
             <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#10B981] rounded-full border-2 border-[#1E2530]" />
@@ -235,13 +231,8 @@ export default function ChatWindow({ conversationId }: { conversationId: string 
             ) : otherUser?.isOnline ? (
               <span className="text-[#10B981]">Online</span>
             ) : (
-<<<<<<< HEAD
               `Last seen ${otherUser?.lastSeen
                 ? new Date(otherUser.lastSeen).toLocaleString()
-=======
-              `Last seen ${conversation?.otherUser?.lastSeen
-                ? new Date(conversation.otherUser.lastSeen).toLocaleString()
->>>>>>> 356af953df29c9461799e75bcf7c57a5f4a7368e
                 : "recently"}`
             )}
           </p>
