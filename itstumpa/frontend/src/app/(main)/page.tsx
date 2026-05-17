@@ -11,7 +11,7 @@ export default function LandingPage() {
   return (
     <main className="min-h-screen bg-[#0F1419] overflow-x-hidden">
 
-      <section className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 pt-16">
+      <section className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 md:pt-8">
 
         {/* Background mesh */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
