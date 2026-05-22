@@ -17,7 +17,7 @@ const app: Application = express();
 // middlewares
 app.use(
   cors({
-    origin: [ config.frontend_url, 'http://localhost:3000', ],
+    origin: [ config.frontend_url, "https://livechat-jade.vercel.app", 'http://localhost:3000', ],
     credentials: true,
     exposedHeaders: ["Set-Cookie"],
   }),
