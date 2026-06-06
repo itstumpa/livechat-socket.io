@@ -2,11 +2,7 @@
 
 A real-time chat platform with file sharing and admin moderation built with Node.js, Express, Socket.IO, and Prisma.
 
-## Live Backend: https://web-development-bootcamp-may-2026-27eq.onrender.com
-
-## Live frontend: https://web-development-bootcamp-may-2026-one.vercel.app
-
-## GitHub Repo: https://github.com/itstumpa/web-development-bootcamp-may-2026
+## Live frontend: https://livechat-jade.vercel.app
 
 
 ## 📋 Table of Contents
@@ -219,16 +215,6 @@ LiveChat is a full-stack real-time chat platform built with Node.js, Express, So
 
 @itstumpa
 
-frontend: https://web-development-bootcamp-may-2026-one.vercel.app
-backend: https://web-development-bootcamp-may-2026-27eq.onrender.com
 
-super_admin= superadmin@livechat.com
-pass= Admin@123
-
-user 1=bob@example.com
-pass=password123
-
-user 2=alice@example.com
-pass=password123
 
 ```
